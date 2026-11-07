@@ -1,0 +1,125 @@
+<div class="order-status">
+  <header class="order-status__header">
+    <h1 class="order-status__title">Estado de Órdenes</h1>
+    <p class="order-status__subtitle">
+      Monitorea y publica eventos de órdenes en tiempo real
+    </p>
+  </header>
+
+  <section class="order-status__publish">
+    <h2 class="order-status__section-title">Publicar Estado</h2>
+    <form 
+      class="order-status__form"
+      [formGroup]="publishForm" 
+      (ngSubmit)="onPublishStatus()">
+      <div class="order-status__form-field">
+        <label for="orderId" class="order-status__label">ID de Orden</label>
+        <input
+          id="orderId"
+          type="text"
+          class="order-status__input"
+          formControlName="orderId"
+          placeholder="Ej: ORD-001"
+          aria-describedby="orderId-hint">
+        @if (publishForm.get('orderId')?.touched && publishForm.get('orderId')?.invalid) {
+          <span id="orderId-hint" class="order-status__error">
+            El ID de orden es requerido
+          </span>
+        }
+      </div>
+
+      <div class="order-status__form-field">
+        <label for="status" class="order-status__label">Estado</label>
+        <select
+          id="status"
+          class="order-status__select"
+          formControlName="status"
+          aria-describedby="status-hint">
+          <option value="" disabled>Selecciona un estado</option>
+          <option value="PENDIENTE">PENDIENTE</option>
+          <option value="PROCESANDO">PROCESANDO</option>
+          <option value="COMPLETADO">COMPLETADO</noption>
+          <option value="CANCELADO">CANCELADO</option>
+        </select>
+        @if (publishForm.get('status')?.touched && publishForm.get('status')?.invalid) {
+          <span id="status-hint" class="order-status__error">
+            Selecciona un estado válido
+          </span>
+        }
+      </div>
+
+      <button
+        type="submit"
+        class="order-status__submit-btn"
+        [disabled]="publishForm.invalid || isPublishing()"
+        aria-label="Publicar estado de orden">
+        @if (isPublishing()) {
+          <span class="order-status__spinner" aria-hidden="true"></span>
+          Publicando...
+        } @else {
+          Publicar Estado
+        }
+      </button>
+    </form>
+
+    @if (publishError()) {
+      <div class="order-status__notification order-status__notification--error" role="alert">
+        <span class="order-status__notification-icon">⚠</span>
+        {{ publishError() }}
+        <button 
+          class="order-status__notification-close" 
+          (click)="clearPublishError()"
+          aria-label="Cerrar notificación">
+          ×
+        </button>
+      </div>
+    }
+
+    @if (publishSuccess()) {
+      <div class="order-status__notification order-status__notification--success" role="status">
+        <span class="order-status__notification-icon">✓</span>
+        Estado publicado correctamente
+        <button 
+          class="order-status__notification-close" 
+          (click)="clearPublishSuccess()"
+          aria-label="Cerrar notificación">
+          ×
+        </button>
+      </div>
+    }
+  </section>
+
+  <section class="order-status__stream">
+    <div class="order-status__stream-header">
+      <h2 class="order-status__section-title">Eventos en Tiempo Real</h2>
+      <div class="order-status__stream-controls">
+        <span 
+          class="order-status__connection-status"
+          [class.order-status__connection-status--connected]="isConnected()"
+          [class.order-status__connection-status--disconnected]="!isConnected()"
+          role="status"
+          aria-live="polite">
+          @if (isConnected()) {
+            <span class="order-status__status-dot" aria-hidden="true"></span>
+            Conectado al stream
+          } @else {
+            <span class="order-status__status-dot order-status__status-dot--offline" aria-hidden="true"></span>
+            Desconectado
+          }
+        </span>
+        <button
+          class="order-status__reconnect-btn"
+          (click)="reconnect()"
+          [disabled]="isConnected()"
+          aria-label="Reconectar al stream de eventos">
+          Reconectar
+        </button>
+      </div>
+    </div>
+
+    <app-order-status-list
+      [statuses]="currentStatuses()"
+      [isLoading]="isLoading()">
+    </app-order-status-list>
+  </section>
+</div>
